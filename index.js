@@ -2,6 +2,7 @@ const connectButton = document.getElementById('connect-button')
 const messageButton = document.getElementById('message-button')
 const cheersButton = document.getElementById('cheers-button')
 const voiceSelection = document.getElementById('voice-select')
+const minBitsInput = document.getElementById('min-bits')
 const status = document.querySelector('#status')
 let selectedVoice = 'Google Nederlands'
 
@@ -28,7 +29,9 @@ client.on('disconnected', () => {
 
 client.on('cheer', async (channel, userstate, message) => {
     if (listeningCheers) {
-        await talk(message)
+        if (Number(userstate.bits) >= Number(minBitsInput.value || 0)) {
+            await talk(message)
+        }
     }
 })
 
@@ -76,7 +79,6 @@ async function talk(text) {
     const voices = await getVoices()
     const msg = new SpeechSynthesisUtterance(text)
     msg.voice = voices.find(voice => voice.name === selectedVoice)
-    console.log(msg.voice)
     window.speechSynthesis.speak(msg)
 }
 
