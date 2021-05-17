@@ -5,9 +5,19 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>TTS</title>
+    <style>
+        .connect-row {
+            display: flex;
+            flex-direction: row;
+        }
+    </style>
 </head>
 <body>
-    <button id="connect-button">connect</button>
+    <div class="connect-row">
+        <button id="connect-button">connect</button>
+        <select id="voice-select">
+        </select>
+    </div>
     <p id="status">Not connected</p>
     <button id="cheers-button">Listen to cheers</button>
     <button id="message-button">Listen to all messages</button>

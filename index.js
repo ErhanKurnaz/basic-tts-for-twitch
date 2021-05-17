@@ -1,11 +1,15 @@
 const connectButton = document.getElementById('connect-button')
 const messageButton = document.getElementById('message-button')
 const cheersButton = document.getElementById('cheers-button')
+const voiceSelection = document.getElementById('voice-select')
 const status = document.querySelector('#status')
+let selectedVoice = 'Google Nederlands'
+
 connectButton.onclick = start
 
 cheersButton.onclick = cheers
 messageButton.onclick = message
+voiceSelection.onchange = voiceSelected
 
 let listeningMessage = false
 let listeningCheers = false
@@ -34,6 +38,20 @@ client.on('message', async (channel, userstate, message) => {
     }
 })
 
+getVoices().then(voices => {
+    voices.forEach(voice => {
+        const option = document.createElement('option')
+        option.innerText = voice.name
+        option.value = voice.name
+
+        if (voice.name === selectedVoice) {
+            option.selected = true
+        }
+
+        voiceSelection.appendChild(option)
+    })
+})
+
 function updateStatus(msg) {
     status.innerText = msg
 }
@@ -57,7 +75,8 @@ function getVoices() {
 async function talk(text) {
     const voices = await getVoices()
     const msg = new SpeechSynthesisUtterance(text)
-    msg.voice = voices.find(voice => voice.name === 'Google Nederlands')
+    msg.voice = voices.find(voice => voice.name === selectedVoice)
+    console.log(msg.voice)
     window.speechSynthesis.speak(msg)
 }
 
@@ -92,4 +111,9 @@ function message() {
     } else {
         messageButton.innerText = 'listen to messages'
     }
+}
+
+async function voiceSelected() {
+    const voices = await getVoices()
+    selectedVoice = voices[voiceSelection.selectedIndex].name
 }
