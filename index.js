@@ -1,5 +1,8 @@
+const customRewardId = '655f118d-d9d1-4095-a700-8bcae7ce16d3'
+
 const connectButton = document.getElementById('connect-button')
 const messageButton = document.getElementById('message-button')
+const rewardButton = document.getElementById('reward-button')
 const cheersButton = document.getElementById('cheers-button')
 const voiceSelection = document.getElementById('voice-select')
 const minBitsInput = document.getElementById('min-bits')
@@ -10,10 +13,12 @@ connectButton.onclick = start
 
 cheersButton.onclick = cheers
 messageButton.onclick = message
+rewardButton.onclick = reward
 voiceSelection.onchange = voiceSelected
 
 let listeningMessage = false
 let listeningCheers = false
+let listeningReward = false
 
 const client = new tmi.Client({
 	channels: ['MatsDoesGaming'],
@@ -36,7 +41,7 @@ client.on('cheer', async (channel, userstate, message) => {
 })
 
 client.on('message', async (channel, userstate, message) => {
-    if (listeningMessage) {
+    if (listeningMessage || (listeningReward && userstate['custom-reward-id'] === customRewardId)) {
         await talk(message)
     }
 })
@@ -112,6 +117,16 @@ function message() {
         messageButton.innerText = 'listening to messages'
     } else {
         messageButton.innerText = 'listen to messages'
+    }
+}
+
+function reward() {
+    listeningReward = !listeningReward
+
+    if (listeningReward) {
+        rewardButton.innerText = 'listening to channel redemptions'
+    } else {
+        rewardButton.innerText = 'listen to channel redemptions'
     }
 }
 
