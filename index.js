@@ -1,24 +1,38 @@
 const customRewardId = '655f118d-d9d1-4095-a700-8bcae7ce16d3'
 
+const allButton = document.getElementById('all-button')
 const connectButton = document.getElementById('connect-button')
 const messageButton = document.getElementById('message-button')
 const rewardButton = document.getElementById('reward-button')
 const cheersButton = document.getElementById('cheers-button')
+const subButton = document.getElementById('sub-button')
+const raidButton = document.getElementById('raid-button')
+
 const voiceSelection = document.getElementById('voice-select')
 const minBitsInput = document.getElementById('min-bits')
 const status = document.querySelector('#status')
+
 let selectedVoice = 'Google Nederlands'
 
 connectButton.onclick = start
 
+allButton.onclick = selectAll
 cheersButton.onclick = cheers
 messageButton.onclick = message
 rewardButton.onclick = reward
+subButton.onclick = subs
+raidButton.onclick = raids
 voiceSelection.onchange = voiceSelected
 
 let listeningMessage = false
 let listeningCheers = false
 let listeningReward = false
+let listeningSubs = false
+let listeningRaids = false
+
+const pendingMessages = []
+const voices = []
+let isTalking = false
 
 const client = new tmi.Client({
 	channels: ['MatsDoesGaming'],
@@ -32,21 +46,40 @@ client.on('disconnected', () => {
     updateStatus('Not connected')
 })
 
-client.on('cheer', async (channel, userstate, message) => {
+client.on('cheer', (_, userstate, message) => {
     if (listeningCheers) {
         if (Number(userstate.bits) >= Number(minBitsInput.value || 0)) {
-            await talk(message)
+            talk(message)
         }
     }
 })
 
-client.on('message', async (channel, userstate, message) => {
+client.on('message', (_, userstate, message) => {
     if (listeningMessage || (listeningReward && userstate['custom-reward-id'] === customRewardId)) {
-        await talk(message)
+        talk(message)
     }
 })
 
-getVoices().then(voices => {
+client.on('resub', (_, __, ___, message) => {
+    if (listeningSubs) {
+        talk(message)
+    }
+})
+
+client.on('subscription', (_, __, ___, message) => {
+    if (listeningSubs) {
+        talk(message)
+    }
+})
+
+client.on('raided', (_, username, viewers) => {
+    if (listeningRaids) {
+        talk(`OMG thank you ${username} for rading with ${viewers} viewers!!! Mats is blushing already`)
+    }
+})
+
+getVoices().then(v => {
+    voices.push(...v)
     voices.forEach(voice => {
         const option = document.createElement('option')
         option.innerText = voice.name
@@ -80,11 +113,22 @@ function getVoices() {
     )
 }
 
-async function talk(text) {
-    const voices = await getVoices()
-    const msg = new SpeechSynthesisUtterance(text)
-    msg.voice = voices.find(voice => voice.name === selectedVoice)
-    window.speechSynthesis.speak(msg)
+function talk(text) {
+    pendingMessages.push(text)
+    if (isTalking) {
+        return
+    }
+
+    isTalking = true
+    const voice = voices.find(voice => voice.name === selectedVoice)
+    while (pendingMessages.length > 0) {
+        const message = pendingMessages.shift()
+        const msg = new SpeechSynthesisUtterance(message)
+        msg.voice = voice
+        window.speechSynthesis.speak(msg)
+    }
+
+    isTalking = false
 }
 
 function start() {
@@ -130,7 +174,44 @@ function reward() {
     }
 }
 
+function subs() {
+    listeningSubs = !listeningSubs
+
+    if (listeningSubs) {
+        subButton.innerText = 'listening to subscriptions'
+    } else {
+        subButton.innerText = 'listen to subscriptions'
+    }
+}
+
+function raids() {
+    listeningRaids = !listeningRaids
+
+    if (listeningRaids) {
+        raidButton.innerText = 'listening to raids'
+    } else {
+        raidButton.innerText = 'listen to raids'
+    }
+}
+
+function selectAll() {
+    if (!listeningCheers) {
+        cheers()
+    }
+
+    if (!listeningReward) {
+        reward()
+    }
+
+    if (!listeningSubs) {
+        subs()
+    }
+
+    if (!listeningRaids) {
+        raids()
+    }
+}
+
 async function voiceSelected() {
-    const voices = await getVoices()
     selectedVoice = voices[voiceSelection.selectedIndex].name
 }
