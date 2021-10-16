@@ -55,6 +55,7 @@ client.on('cheer', (_, userstate, message) => {
 })
 
 client.on('message', (_, userstate, message) => {
+    console.log(message)
     if (listeningMessage || (listeningReward && userstate['custom-reward-id'] === customRewardId)) {
         talk(message)
     }
@@ -93,6 +94,17 @@ getVoices().then(v => {
     })
 })
 
+/**
+ * Split a string into chunks of the given size
+ * @param  {String} string is the String to split
+ * @param  {Number} size is the size you of the cuts
+ * @return {Array} an Array with the strings
+ */
+function splitString (string, size) {
+	var re = new RegExp('.{1,' + size + '}', 'g');
+	return string.match(re);
+}
+
 function updateStatus(msg) {
     status.innerText = msg
 }
@@ -114,7 +126,8 @@ function getVoices() {
 }
 
 function talk(text) {
-    pendingMessages.push(text)
+    splitString(text, 255).forEach(msg => pendingMessages.push(msg))
+
     if (isTalking) {
         return
     }
