@@ -1,3 +1,4 @@
+const version = '0.1.5'
 const customRewardId = '655f118d-d9d1-4095-a700-8bcae7ce16d3'
 
 const allButton = document.getElementById('all-button')
@@ -11,6 +12,8 @@ const raidButton = document.getElementById('raid-button')
 const voiceSelection = document.getElementById('voice-select')
 const minBitsInput = document.getElementById('min-bits')
 const status = document.querySelector('#status')
+
+document.querySelector('#version').innerHTML = 'version: ' + version
 
 let selectedVoice = 'Google Nederlands'
 
@@ -55,7 +58,6 @@ client.on('cheer', (_, userstate, message) => {
 })
 
 client.on('message', (_, userstate, message) => {
-    console.log(message)
     if (listeningMessage || (listeningReward && userstate['custom-reward-id'] === customRewardId)) {
         talk(message)
     }
